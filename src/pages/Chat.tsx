@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { Composer } from "../components/Composer";
+import type { VoiceNote } from "../components/Composer";
 import { Sidebar } from "../components/Sidebar";
 import { dummyPeers } from "../lib/dummyData";
 import type { ChatMessage } from "../types";
+
+function formatDuration(ms: number) {
+  const total = Math.max(1, Math.round(ms / 1000));
+  const minutes = Math.floor(total / 60);
+  const seconds = String(total % 60).padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
 
 const Chat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -12,6 +20,11 @@ const Chat = () => {
       ...prev,
       { id: crypto.randomUUID(), from: "me", text, sentAt: Date.now() },
     ]);
+  }
+
+  // Placeholder until file transfer exists: the note is an audio file sent like any other.
+  function addVoiceNote(note: VoiceNote) {
+    addMine(`Voice note · ${formatDuration(note.durationMs)}`);
   }
 
   return (
@@ -48,6 +61,7 @@ const Chat = () => {
             <Composer
               onSend={addMine}
               onAttach={(files) => files.forEach((file) => addMine(`Attached ${file.name}`))}
+              onVoiceNote={addVoiceNote}
             />
           </div>
         </section>

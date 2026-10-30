@@ -16,11 +16,20 @@ import {
   type PickerAnchor,
   type PickerItem,
 } from "./PickerPopover";
+import VoicePill from "./VoicePill";
+
+export type VoiceNote = {
+  blob: Blob;
+  /** Length measured by the composer, in milliseconds. */
+  durationMs: number;
+};
 
 type ComposerProps = {
   onSend: (text: string) => void;
   onAttach?: (files: File[]) => void;
   onSticker?: (glyph: string) => void;
+  /** When given, an empty composer shows the voice pill in place of the send button. */
+  onVoiceNote?: (note: VoiceNote) => void;
   disabled?: boolean;
 };
 
@@ -28,6 +37,8 @@ type Panel = "emoji" | "sticker" | null;
 
 const MAX_LENGTH = 2000;
 const MAX_HEIGHT = 128;
+/** Recordings shorter than this are treated as accidental taps and dropped. */
+const MIN_VOICE_MS = 500;
 
 const EMOJI = [
   "😀", "😁", "😂", "🤣", "😊", "😍", "😘", "😎",
@@ -118,6 +129,7 @@ export function Composer({
   onSend,
   onAttach,
   onSticker,
+  onVoiceNote,
   disabled = false,
 }: ComposerProps) {
   const uid = useId();
@@ -128,13 +140,26 @@ export function Composer({
   const [panel, setPanel] = useState<Panel>(null);
   const [anchor, setAnchor] = useState<PickerAnchor | null>(null);
   const [active, setActive] = useState(0);
+  const [recording, setRecording] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
 
   const formRef = useRef<HTMLFormElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const emojiBtn = useRef<HTMLButtonElement>(null);
   const stickerBtn = useRef<HTMLButtonElement>(null);
-  const canSend = !disabled && text.trim().length > 0;
+
+  // Voice recorder state lives in refs because the pill calls these from its own events.
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const startedAtRef = useRef(0);
+  const startingRef = useRef<Promise<void> | null>(null);
+
+  const hasText = text.trim().length > 0;
+  const canSend = !disabled && hasText;
+  const showVoice = Boolean(onVoiceNote) && !hasText;
+  const locked = disabled || recording;
 
   useLayoutEffect(() => {
     const el = inputRef.current;
@@ -142,6 +167,13 @@ export function Composer({
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, MAX_HEIGHT)}px`;
   }, [text]);
+
+  // Release the microphone if the composer goes away mid recording.
+  useEffect(() => {
+    return () => {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+    };
+  }, []);
 
   function measure(kind: Exclude<Panel, null>): PickerAnchor | null {
     const form = formRef.current;
@@ -219,6 +251,19 @@ export function Composer({
     });
   }
 
+  function insertNewline() {
+    const el = inputRef.current;
+    const start = el?.selectionStart ?? text.length;
+    const end = el?.selectionEnd ?? text.length;
+    const next = text.slice(0, start) + "\n" + text.slice(end);
+    if (next.length > MAX_LENGTH) return;
+    setText(next);
+    requestAnimationFrame(() => {
+      if (!el) return;
+      el.setSelectionRange(start + 1, start + 1);
+    });
+  }
+
   function sendSticker(glyph: string) {
     onSticker?.(glyph);
     closePanel();
@@ -230,6 +275,17 @@ export function Composer({
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    // Ctrl+Enter (or Cmd+Enter) always starts a new line, like Shift+Enter.
+    if (
+      event.key === "Enter" &&
+      (event.ctrlKey || event.metaKey) &&
+      !event.nativeEvent.isComposing
+    ) {
+      event.preventDefault();
+      insertNewline();
+      return;
+    }
+
     if (panel) {
       const items = panel === "emoji" ? EMOJI_ITEMS : STICKER_ITEMS;
       const columns = COLUMNS[panel];
@@ -293,11 +349,70 @@ export function Composer({
     if (files.length > 0) onAttach?.(files);
   }
 
+  function startRecording() {
+    setVoiceError("");
+    setRecording(true);
+    closePanel();
+    startingRef.current = (async () => {
+      try {
+        if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+          throw new Error("unsupported");
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const recorder = new MediaRecorder(stream);
+        chunksRef.current = [];
+        recorder.ondataavailable = (event) => {
+          if (event.data.size > 0) chunksRef.current.push(event.data);
+        };
+        streamRef.current = stream;
+        recorderRef.current = recorder;
+        startedAtRef.current = performance.now();
+        recorder.start();
+      } catch {
+        // `recording` stays on until the pill reports it has stopped, so the bar and the pill agree.
+        setVoiceError("The microphone isn't available. Allow microphone access for this site and try again.");
+      }
+    })();
+  }
+
+  async function stopRecording(reason: string) {
+    setRecording(false);
+    // A quick tap can stop before the microphone has opened, so wait for it.
+    await startingRef.current;
+    const recorder = recorderRef.current;
+    const stream = streamRef.current;
+    if (!recorder || recorder.state === "inactive") return;
+
+    const durationMs = performance.now() - startedAtRef.current;
+    const cancelled = reason.toLowerCase().includes("cancel");
+    recorder.onstop = () => {
+      stream?.getTracks().forEach((track) => track.stop());
+      const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+      chunksRef.current = [];
+      recorderRef.current = null;
+      streamRef.current = null;
+      if (!cancelled && durationMs >= MIN_VOICE_MS && blob.size > 0) {
+        onVoiceNote?.({ blob, durationMs: Math.round(durationMs) });
+      }
+    };
+    recorder.stop();
+  }
+
   const items = panel === "sticker" ? STICKER_ITEMS : EMOJI_ITEMS;
   const columns = panel === "sticker" ? COLUMNS.sticker : COLUMNS.emoji;
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit} className="relative flex items-end gap-3">
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit}
+      className="relative flex flex-wrap items-end gap-3"
+    >
+      {voiceError && (
+        <p className="order-first w-full text-left text-xs text-danger" role="alert">
+          {voiceError}
+        </p>
+      )}
+
       <PickerPopover
         open={panel !== null}
         popoverKey={panel ?? "none"}
@@ -318,7 +433,7 @@ export function Composer({
           <IconButton
             label="Emoji"
             active={panel === "emoji"}
-            disabled={disabled}
+            disabled={locked}
             btnRef={emojiBtn}
             controls={listId}
             onClick={() => togglePanel("emoji")}
@@ -335,7 +450,7 @@ export function Composer({
             <IconButton
               label="Stickers"
               active={panel === "sticker"}
-              disabled={disabled}
+              disabled={locked}
               btnRef={stickerBtn}
               controls={listId}
               onClick={() => togglePanel("sticker")}
@@ -359,8 +474,8 @@ export function Composer({
           }}
           onKeyDown={handleKeyDown}
           maxLength={MAX_LENGTH}
-          disabled={disabled}
-          placeholder="Message"
+          disabled={locked}
+          placeholder={recording ? "" : "Message"}
           aria-label="Message"
           role="combobox"
           aria-haspopup="listbox"
@@ -368,15 +483,16 @@ export function Composer({
           aria-controls={panel ? listId : undefined}
           aria-activedescendant={panel ? `${optionPrefix}-${active}` : undefined}
           className={`min-h-12 min-w-0 flex-1 resize-none bg-transparent py-3 pl-1 text-[15px] leading-6 text-ink outline-none placeholder:text-faint [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-            onAttach ? "pr-1" : "pr-5"
+            onAttach && !recording ? "pr-1" : "pr-5"
           }`}
         />
 
-        {onAttach && (
+        {/* The paperclip is removed while recording, so the pill's Cancel label has nothing to overlap. */}
+        {onAttach && !recording && (
           <div className="flex shrink-0 items-center pr-1">
             <IconButton
               label="Attach a file"
-              disabled={disabled}
+              disabled={locked}
               onClick={() => fileRef.current?.click()}
             >
               <svg {...iconProps}>
@@ -388,17 +504,47 @@ export function Composer({
         )}
       </div>
 
-      <button
-        type="submit"
-        disabled={!canSend}
-        aria-label="Send message"
-        className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition hover:bg-accent-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-35"
-      >
-        <svg {...iconProps}>
-          <path d="M22 2 11 13" />
-          <path d="M22 2 15 22l-4-9-9-4 20-7z" />
-        </svg>
-      </button>
+      {showVoice ? (
+        <div className="relative z-10 grid size-12 shrink-0 place-items-center">
+          <VoicePill
+            accentColor="#f5f5f5"
+            iconColor="#a1a1aa"
+            background="#27272a"
+            size={48}
+            shape="pill"
+            reach={8}
+            showTime
+            waveform
+            slideToCancel={false}
+            cancelDistance={64}
+            attack={40}
+            release={240}
+            sensitivity={1}
+            floor={0.1}
+            openDuration={200}
+            pressScale={0.95}
+            mode="auto"
+            holdAfter={300}
+            reactive="simulated"
+            onStart={() => startRecording()}
+            onStop={({ reason }: { reason: string }) => {
+              void stopRecording(String(reason));
+            }}
+          />
+        </div>
+      ) : (
+        <button
+          type="submit"
+          disabled={!canSend}
+          aria-label="Send message"
+          className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition hover:bg-accent-hover active:scale-95 disabled:cursor-not-allowed disabled:opacity-35"
+        >
+          <svg {...iconProps}>
+            <path d="M22 2 11 13" />
+            <path d="M22 2 15 22l-4-9-9-4 20-7z" />
+          </svg>
+        </button>
+      )}
     </form>
   );
 }
