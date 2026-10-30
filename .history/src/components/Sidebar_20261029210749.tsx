@@ -1,0 +1,1 @@
+npx shadcn@latest add @uiarc/scroll-area

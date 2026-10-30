@@ -1,0 +1,29 @@
+.primary:not(.customBackground) {
+  color: var(--background);
+  background: var(--foreground);
+  border-color: var(--foreground);
+}
+
+.secondary:not(.customBackground) {
+  color: var(--foreground);
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.ghost:not(.customBackground) {
+  color: var(--text-secondary);
+  background: transparent;
+  border-color: transparent;
+}
+
+.danger:not(.customBackground) {
+  color: var(--danger);
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* Custom background: no border */
+.customBackground {
+  border: none;
+  border-color: transparent;
+}

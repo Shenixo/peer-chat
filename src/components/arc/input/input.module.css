@@ -1,0 +1,195 @@
+.field { display: grid; min-width: 0; }
+.label { margin-bottom: var(--space-2); color: var(--foreground); font-size: var(--text-sm); font-weight: 500; line-height: var(--leading-body); }
+/* Focus answers with the border colour alone (no rings or halos); the field itself never changes size. */
+.input { width: 100%; min-height: var(--control-height-md); padding: 0 var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-control); background: var(--surface); color: var(--foreground); font: inherit; font-size: var(--text-sm); line-height: var(--leading-body); letter-spacing: var(--tracking-body); outline: none; transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard); }
+.input::placeholder { color: var(--text-muted); }
+@media (hover: hover) and (pointer: fine) { .input:hover:not(:disabled, [aria-invalid="true"]) { border-color: var(--foreground); } }
+.input:focus-visible { border-color: var(--foreground); }
+.input[aria-invalid="true"] { border-color: var(--danger); }
+.input:disabled { cursor: not-allowed; opacity: .5; background: var(--surface-muted); }
+/* The row's space is padding inside the clipped slot, so the height animates from a true zero. */
+.messageSlot { display: block; overflow: hidden; }
+.description, .error { display: block; padding-top: var(--space-2); font-size: var(--text-xs); line-height: var(--leading-body); }
+.description { color: var(--text-muted); } .error { color: var(--danger); }
+/* Words are measured against this box when they pop out to leave, so it must be the positioned parent. */
+.words { position: relative; display: block; }
+.word { display: inline-block; white-space: pre; }
+/* One column per character of a count. Tabular digits keep columns equal, so only a gained or lost digit changes the width. */
+.column { position: relative; display: inline-flex; justify-content: center; font-variant-numeric: tabular-nums; }
+.column > span { display: inline-block; }
+.srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .input { transition-duration: .01ms; } }
+
+
+.field {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  justify-items: stretch;
+  text-align: left;
+}
+
+.label {
+  display: block;
+  width: 100%;
+  margin-bottom: 5px;
+  color: var(--foreground);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: var(--leading-body);
+  text-align: left;
+}
+
+/* Left-aligned input with adjustable dimensions. */
+.input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--foreground);
+  font: inherit;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  letter-spacing: var(--tracking-body);
+  text-align: left;
+  text-indent: 0;
+  outline: none;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+  text-align: left;
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .input:hover:not(:disabled, [aria-invalid="true"]) {
+    border-color: var(--foreground);
+  }
+}
+
+.input:focus-visible {
+  border-color: var(--foreground);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: var(--surface-muted);
+}
+
+/* Input sizes follow the shared Button sizing convention. */
+.sm {
+  min-height: 2.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+.md {
+  min-height: 3rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+}
+
+.lg {
+  min-height: 3.5rem;
+  padding: 1rem 1.75rem;
+  font-size: 1.125rem;
+}
+
+.xl {
+  min-height: 4rem;
+  padding: 1.125rem 2rem;
+  font-size: 1.25rem;
+}
+
+.size2xl {
+  min-height: 4.5rem;
+  padding: 1.25rem 2.5rem;
+  font-size: 1.375rem;
+}
+
+/* Helper and error messages stay left-aligned, including wrapped lines. */
+.messageSlot {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+}
+
+.description,
+.error {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: var(--space-2);
+  font-size: var(--text-xs);
+  line-height: var(--leading-body);
+  text-align: left;
+  overflow-wrap: anywhere;
+  margin-top: 2px;
+}
+
+.description {
+  color: var(--text-muted);
+}
+
+.error {
+  color: var(--danger);
+}
+
+/* Animated text retains its natural left-to-right flow. */
+.words {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.word {
+  display: inline-block;
+  white-space: pre-wrap;
+}
+
+/* Rolling numeric characters. */
+.column {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.column > span {
+  display: inline-block;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .input {
+    transition-duration: 0.01ms;
+  }
+}

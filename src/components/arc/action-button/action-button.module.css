@@ -1,0 +1,229 @@
+.button { position: relative; display: inline-flex; min-height: var(--control-height-md); align-items: center; justify-content: center; overflow: hidden; padding: 0 var(--space-5); border: 1px solid var(--foreground); border-radius: var(--radius-control); background: var(--foreground); color: var(--background); font: inherit; font-size: var(--text-sm); font-weight: 500; line-height: var(--leading-body); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), opacity var(--duration-fast) var(--ease-standard); }
+@media (hover: hover) and (pointer: fine) { .button:hover:not(:disabled) { box-shadow: var(--shadow-resting); } }
+.button:disabled { cursor: not-allowed; }
+.button:disabled:not([data-state="pending"]) { opacity: .7; }
+.button[data-state="pending"] { cursor: progress; }
+.content { display: inline-flex; min-height: 1.25rem; align-items: center; justify-content: center; gap: 5px; white-space: nowrap; }
+.morph { position: relative; display: inline-grid; min-width: 0; justify-items: start; }
+.morph[data-morphing] { clip-path: inset(-.6em 0 -.6em -.3em); }
+/* The sizer holds the current label's width; the visible labels stack in the same cell while one fades out. */
+.sizer { grid-area: 1 / 1; visibility: hidden; white-space: pre; }
+.label { grid-area: 1 / 1; white-space: pre; }
+.iconSlot { display: grid; width: 17px; height: 17px; flex: 0 0 17px; place-items: center; }
+.phase { grid-area: 1 / 1; display: grid; width: 17px; height: 17px; place-items: center; }
+.arrow { flex: none; }
+.statusIcon { color: currentColor; }
+.spinner { display: inline-block; width: var(--space-4); height: var(--space-4); border: 1.5px solid currentColor; border-right-color: transparent; border-radius: var(--radius-pill); animation: spin .7s linear infinite; }
+.visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .button { transition: none; } .spinner { animation: none; } }
+
+
+
+.button {
+  position: relative;
+  display: inline-flex;
+  min-height: var(--control-height-md);
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 0 var(--space-5);
+  border: 1px solid var(--foreground);
+  border-radius: var(--radius-control);
+  background: var(--foreground);
+  color: var(--background);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: var(--leading-body);
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard),
+    opacity var(--duration-fast) var(--ease-standard);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.button[aria-disabled="true"]:not([data-state="pending"]) {
+  cursor: not-allowed;
+}
+
+.button[data-state="pending"] {
+  cursor: progress;
+}
+
+.button[aria-busy="true"] {
+  cursor: progress;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button:hover:not(:disabled):not([aria-disabled="true"]) {
+    box-shadow: var(--shadow-resting);
+  }
+}
+
+.button:active:not(:disabled):not([aria-disabled="true"]) {
+  opacity: 0.84;
+}
+
+.content {
+  display: inline-flex;
+  min-height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.morph {
+  position: relative;
+  display: inline-grid;
+  min-width: 0;
+  justify-items: start;
+}
+
+.morph[data-morphing] {
+  clip-path: inset(-0.6em 0 -0.6em -0.3em);
+}
+
+.sizer {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  white-space: pre;
+}
+
+.label {
+  grid-area: 1 / 1;
+  white-space: pre;
+}
+
+.iconSlot {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  place-items: center;
+}
+
+.phase {
+  grid-area: 1 / 1;
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+}
+
+.arrow {
+  flex: none;
+}
+
+.statusIcon {
+  color: currentColor;
+}
+
+.spinner {
+  display: inline-block;
+  width: var(--space-4);
+  height: var(--space-4);
+  box-sizing: border-box;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--radius-pill);
+  animation: spin 0.7s linear infinite;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.customBackground {
+  border-color: transparent;
+}
+
+/* Sizes match Button */
+.sm {
+  min-height: 2.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+.md {
+  min-height: 3rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+}
+
+.lg {
+  min-height: 3.5rem;
+  padding: 1rem 1.75rem;
+  font-size: 1.125rem;
+}
+
+.xl {
+  min-height: 4rem;
+  padding: 1.125rem 2rem;
+  font-size: 1.25rem;
+}
+
+.size2xl {
+  min-height: 4.5rem;
+  padding: 1.25rem 2.5rem;
+  font-size: 1.375rem;
+  gap: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: action-button-spin 0.7s linear infinite;
+}
+
+@keyframes action-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.6s;
+  }
+}

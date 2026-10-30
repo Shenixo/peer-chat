@@ -1,0 +1,155 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Your design tokens — these win */
+@theme {
+  --color-ground: #0A0A0C;
+  --color-surface: #131317;
+  --color-elevated: #1B1B21;
+  --color-line: rgb(255 255 255 / 0.09);
+  --color-ink: #F5F5F7;
+  --color-muted: #A1A1A6;
+  --color-faint: #6E6E73;
+  --color-accent: #FF9F0A;
+  --color-accent-hover: #FFB340;
+  --color-accent-ink: #1A1000;
+  --color-online: #30D158;
+
+  --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Consolas, monospace;
+
+  --radius-card: 28px;
+  --radius-field: 16px;
+}
+
+/* shadcn's semantic tokens, mapped onto your palette.
+   Note: no --color-accent / --color-muted / --font-sans here, so yours stay intact. */
+@theme inline {
+  --font-heading: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: var(--color-ground);
+  --foreground: var(--color-ink);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-elevated);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-accent);
+  --primary-foreground: var(--color-accent-ink);
+  --secondary: var(--color-elevated);
+  --secondary-foreground: var(--color-ink);
+  --muted-foreground: var(--color-muted);
+  --accent-foreground: var(--color-accent-ink);
+  --destructive: #FF453A;
+  --border: var(--color-line);
+  --input: rgb(255 255 255 / 0.14);
+  --ring: var(--color-accent);
+  --chart-1: #FF9F0A;
+  --chart-2: #FFB340;
+  --chart-3: #30D158;
+  --chart-4: #A1A1A6;
+  --chart-5: #6E6E73;
+  --radius: 0.625rem;
+  --sidebar: var(--color-surface);
+  --sidebar-foreground: var(--color-ink);
+  --sidebar-primary: var(--color-accent);
+  --sidebar-primary-foreground: var(--color-accent-ink);
+  --sidebar-accent: var(--color-elevated);
+  --sidebar-accent-foreground: var(--color-ink);
+  --sidebar-border: var(--color-line);
+  --sidebar-ring: var(--color-accent);
+
+  /* Arc tabs tokens (read by components/arc/tabs/tabs.module.css) */
+  --radius-control: 1.5rem;
+  --space-1: 0.25rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --control-height-sm: 2.375rem;
+
+  --text-sm: 0.875rem;
+  --leading-body: 1.5;
+
+  --surface-muted: rgb(255 255 255 / 0.05);
+  --surface: rgb(255 255 255 / 0.1);
+  --text-muted: #A1A1A6;
+  --text-secondary: #A1A1A6;
+  --accent-strong: #F5F5F7;
+  --shadow-resting: 0 1px 2px rgb(0 0 0 / 0.4);
+
+  --duration-fast: 150ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: rgb(255 159 10 / 0.35);
+  }
+
+  * {
+    @apply border-border;
+  }
+}
