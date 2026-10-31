@@ -43,9 +43,12 @@ export type FileEvent =
   | { type: "failed"; transferId: string; direction: FileDirection; reason: string }
   | { type: "cancelled"; transferId: string; direction: FileDirection };
 
+/** One transfer per recipient, so the UI knows which transfer belongs to which person. */
+export type OutgoingTransfer = { transferId: string; peerId: string };
+
 export interface FileTransport {
-  /** Offers a file to one peer, or to everyone. Returns one transfer id per recipient. */
-  offerFile(file: File, to: string): Promise<string[]>;
+  /** Offers a file to one peer, or to everyone. Returns one entry per recipient. */
+  offerFile(file: File, to: string): Promise<OutgoingTransfer[]>;
   acceptFile(transferId: string): Promise<void>;
   declineFile(transferId: string): Promise<void>;
   /** Stops a transfer that is waiting or running, in either direction. */

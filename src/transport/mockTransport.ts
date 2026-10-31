@@ -13,6 +13,7 @@ import type {
   FileEvent,
   FileTransport,
   IncomingMessage,
+  OutgoingTransfer,
   PeerEvent,
   TransportPeer,
   Unsubscribe,
@@ -181,7 +182,7 @@ export class MockTransport implements ChatTransport {
     this.fileEvents.emit({ type: "failed", transferId, direction: transfer.direction, reason });
   }
 
-  private async offerFile(file: File, to: string): Promise<string[]> {
+  private async offerFile(file: File, to: string): Promise<OutgoingTransfer[]> {
     this.requireJoined();
     const targets = to === EVERYONE ? [...this.peers.values()] : [this.requirePeer(to)];
     if (targets.length === 0) throw new TransportError("no-peers", "Nobody else is in the room yet.");
@@ -193,7 +194,7 @@ export class MockTransport implements ChatTransport {
         this.fileEvents.emit({ type: "accepted", transferId: transfer.id, peerId: peer.id });
         this.startProgress(transfer);
       });
-      return transfer.id;
+      return { transferId: transfer.id, peerId: peer.id };
     });
   }
 

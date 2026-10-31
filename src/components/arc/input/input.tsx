@@ -26,7 +26,7 @@ export type InputSize =
   | "2xl";
 
 export interface InputProps
-  extends InputHTMLAttributes<HTMLInputElement> {
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
   label: string;
   description?: string;
   error?: string;

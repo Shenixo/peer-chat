@@ -81,8 +81,8 @@ describe("MockTransport", () => {
     const seen = watch(transport);
     await transport.join(CODE);
     vi.advanceTimersByTime(500);
-    const ids = await transport.files.offerFile(fakeFile("a.pdf", 2_000_000), EVERYONE);
-    expect(ids).toHaveLength(1);
+    const sent = await transport.files.offerFile(fakeFile("a.pdf", 2_000_000), EVERYONE);
+    expect(sent).toEqual([{ transferId: expect.any(String), peerId: MOCK_MAYA_ID }]);
     vi.advanceTimersByTime(5000);
     const types = seen.files.map((event) => event.type);
     expect(types[0]).toBe("accepted");
@@ -117,9 +117,9 @@ describe("MockTransport", () => {
     const seen = watch(transport);
     await transport.join(CODE);
     vi.advanceTimersByTime(500);
-    const [id] = await transport.files.offerFile(fakeFile("big.zip", 50_000_000), MOCK_MAYA_ID);
+    const [first] = await transport.files.offerFile(fakeFile("big.zip", 50_000_000), MOCK_MAYA_ID);
     vi.advanceTimersByTime(2000);
-    await transport.files.cancelFile(id ?? "");
+    await transport.files.cancelFile(first?.transferId ?? "");
     expect(seen.files.at(-1)?.type).toBe("cancelled");
   });
 

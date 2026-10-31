@@ -7,7 +7,7 @@ import {
   useReducedMotion,
 } from "motion/react";
 import type { Transition } from "motion/react";
-import { motionTokens } from "@/lib/motion-tokens";
+import { motionTokens } from "../lib/motion-tokens";
 
 export type PickerItem = { value: string; label: string };
 export type PickerAnchor = {
